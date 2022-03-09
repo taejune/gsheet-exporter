@@ -23,7 +23,9 @@ ENV REGISTRY_AUTH_FILE=/tmp/auth.json
 
 WORKDIR /app
 
-ADD ../** /app
+ADD requirements.txt /app
+ADD src /app
+
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["sh", "-c", "/app/entrypoint.sh"]
+ENTRYPOINT ["python3", "main.py"]

@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-python3 server.py
+python3 src/main.py
