@@ -1,5 +1,6 @@
-import subprocess
 import re
+import os
+import subprocess
 
 class SkopeoUtil:
     CHECK = 'skopeo inspect docker://{IMAGE}'
@@ -7,15 +8,20 @@ class SkopeoUtil:
     COPYCMD = 'skopeo copy --dest-tls-verify=false docker://{IMAGE} docker://{DEST}/{IMAGE}'
     CRED_COPY = 'skopeo copy --src-creds={CRED} --dest-tls-verify=false docker://{IMAGE} docker://{DEST}/{IMAGE}'
 
-    def __init__(self, registries):
-        self.registries = registries
+    def __init__(self, docker_cred, quay_cred, gcr_cred, copy_to):
+        self.profiles = {
+            'docker.io': {'pattern': re.compile('^[a-z.]*docker.io/'), 'cred': docker_cred},
+            'quay.io': {'pattern': re.compile('^[a-z.]*quay.io/'), 'cred': quay_cred},
+            'gcr': {'pattern': re.compile('^[a-z.]*gcr.io/'), 'cred': gcr_cred}
+        }
+        self.copy_to = copy_to
 
-    def check_image(self, name):
-        cmd = self.CRED_CHECK.format(IMAGE=name, CRED=self.registries['docker.io']['cred'])
-        for reg in self.registries.values():
-            if reg['regex'].search(name) != None:
-                if len(reg['cred']) > 0:
-                    cmd = self.CRED_CHECK.format(IMAGE=name, CRED=reg['cred'])
+    def inspect(self, name):
+        cmd = self.CRED_CHECK.format(IMAGE=name, CRED=self.profiles['docker.io']['cred'])
+        for profile in self.profiles.values():
+            if profile['pattern'].search(name) != None:
+                if profile['cred']:
+                    cmd = self.CRED_CHECK.format(IMAGE=name, CRED=profile['cred'])
                 else:
                     cmd = self.CHECK.format(IMAGE=name)
                 break
@@ -26,14 +32,14 @@ class SkopeoUtil:
         except subprocess.SubprocessError as e:
             return (name, False, str(e.stderr, 'utf-8'))
 
-    def copy_image(self, name, copy_to):
-        cmd = self.CRED_COPY.format(IMAGE=name, CRED=self.registries['docker.io']['cred'], DEST=copy_to)
-        for reg in self.registries.values():
-            if reg['regex'].search(name) != None:
-                if len(reg['cred']) > 0:
-                    cmd = self.CRED_COPY.format(IMAGE=name, CRED=reg['cred'], DEST=copy_to)
+    def copy(self, name):
+        cmd = self.CRED_COPY.format(IMAGE=name, CRED=self.profiles['docker.io']['cred'], DEST=self.copy_to)
+        for profile in self.profiles.values():
+            if profile['pattern'].search(name) != None:
+                if profile['cred']:
+                    cmd = self.CRED_COPY.format(IMAGE=name, CRED=profile['cred'], DEST=self.copy_to)
                 else:
-                    cmd = self.COPYCMD.format(IMAGE=name, DEST=copy_to)
+                    cmd = self.COPYCMD.format(IMAGE=name, DEST=self.copy_to)
                 break
         try:
             print(cmd)

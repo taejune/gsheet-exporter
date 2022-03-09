@@ -1,18 +1,18 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import urllib.parse as urlparse
 import os
+import re
 import json
 import cgi
-import regsync
-
-DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1_KVOzzVlAl8VQ6y6I4y2NnsokjF-yE51uOXcZPyzDEU/edit#gid=0"
-DEFAULT_SHEET_IDX = 0
-DEFAULT_COL_NUM = 1
-DEFAULT_ROW_NUM = 2
-DEFAULT_REGISTRY_URL = "localhost:5000"
-DEFAULT_NOTIFY_URL = "http://localhost:3000/run"
+import gsheet
+import skopeoutil
 
 class myHandler(BaseHTTPRequestHandler):
+  def __init__(self, fetcher, skopeo, *args, **kargs):
+    self.fetcher = fetcher
+    self.skopeo = skopeo
+    super().__init__(*args, **kargs)
+
   def __get_Parameter(self, key):
     if hasattr(self, "_myHandler__param") == False:
       if "?" in self.path:
@@ -55,34 +55,32 @@ class myHandler(BaseHTTPRequestHandler):
     length = int(self.headers['Content-Length'])
     message = json.loads(self.rfile.read(length))
 
-    if message.get('sheet') == None:
-        message['sheet'] = os.environ['SHEET_URL'] if os.environ.get('SHEET_URL') is not None else DEFAULT_SHEET_URL
-    if message.get('idx') == None:
-        message['idx'] = os.environ['SHEET_IDX'] if os.environ.get('SHEET_IDX') is not None else DEFAULT_SHEET_IDX
-    if message.get('col') == None:
-        message['col'] = os.environ['COL_NUM'] if os.environ.get('COL_NUM') is not None else DEFAULT_COL_NUM
-    if message.get('row') == None:
-        message['row'] = os.environ['ROW_FROM'] if os.environ.get('ROW_FROM') is not None else DEFAULT_ROW_NUM
-    if message.get('reg') == None:
-        message['reg'] = os.environ['REGISTRY_URL'] if os.environ.get('REGISTRY_URL') is not None else DEFAULT_REGISTRY_URL
-    if message.get('docker') == None:
-        message['docker'] = os.environ['DOCKER_CRED'] if os.environ.get('DOCKER_CRED') is not None else ''
-    if message.get('quay') == None:
-        message['quay'] = os.environ['QUAY_CRED'] if os.environ.get('QUAY_CRED') is not None else ''
-    if message.get('gcr') == None:
-        message['gcr'] = os.environ['GCR_CRED'] if os.environ.get('GCR_CRED') is not None else ''
-    if message.get('notify') == None:
-        message['notify'] = os.environ['NOTIFY_URL'] if os.environ.get('NOTIFY_URL') is not None else DEFAULT_NOTIFY_URL
+    targets = self.fetcher.parse_list(message.get('url'),
+                                     message.get('num'),
+                                     message.get('col'),
+                                     message.get('row'))
 
-    print('Sync {reg} to {reg}'.format(sheet=message['sheet'],  reg=message['reg']))
-    res = regsync.run(message['sheet'], int(message['idx']), int(message['col']), int(message['row']),
-                      message['reg'], message['docker'], message['quay'], message['gcr'], message['notify'])
+    copied = []
+    failed = []
+    for name in targets:
+      img, ok, reason = self.skopeo.copy(name)
+      if ok:
+        print('Copying {img} success'.format(img=img))
+        copied.append(img)
+      else:
+        print('[WARN] Copying {img} failed... (reason: {reason})'.format(img=img, reason=reason))
+        failed.append({img: reason})
 
-    print('Uploading {reg}'.format(sheet=message['sheet'],  reg=message['reg']))
+    results = {'sync': {}}
+    results['sync']['success'] = copied
+    results['sync']['failed'] = failed
+
+    print('Archiving...')
+    print('Uploading...')
     #     response = requests.get(notify_to)
     #     results['uploads'] = { 'status': response.status_code, 'msg': response.text }
     self.__set_Header(200)
-    self.wfile.write(bytes(json.dumps(res), 'utf-8'))
+    self.wfile.write(bytes(json.dumps(results), 'utf-8'))
 
   def do_GET(self):
     self.__set_Header(200)
