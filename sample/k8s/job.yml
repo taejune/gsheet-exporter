@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: image-sync-failed1
+spec:
+  template:
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              curl -X "POST" "http://192.168.0.3:30800" \
+              -H 'Content-Type: application/json' \
+              -d '{"sheet":"https://docs.google.com/spreadsheets/d/1_KVOzzVlAl8VQ6y6I4y2NnsokjF-yE51uOXcZPyzDEU/edit#gid=0"}'
+      restartPolicy: Never
+  backoffLimit: 4

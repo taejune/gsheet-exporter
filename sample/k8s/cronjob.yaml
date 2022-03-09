@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sync-archive-upload
+spec:
+  schedule: "0 2 * * SAT"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: curl
+              image: curlimages/curl
+              command:
+                - "/bin/sh"
+                - "-c"
+                - |
+                  curl -X "POST" "http://192.168.0.3:30800" \
+                  -H 'Content-Type: application/json' \
+                  -d '{}'
+          restartPolicy: OnFailure
