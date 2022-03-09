@@ -14,14 +14,16 @@ push:
 	@echo "push $(REPO)/$(IMAGE):$(TAG)..."
 	@$(DOCKERPUSH) $(REPO)/$(IMAGE):$(TAG)
 run:
-	@docker run --name sync -it --rm \
-		-p 8080:8080 \
+	@docker run --name gsheet -it --rm -p 8080:8080 \
 		-e SHEET_URL="https://docs.google.com/spreadsheets/d/1_KVOzzVlAl8VQ6y6I4y2NnsokjF-yE51uOXcZPyzDEU/edit#gid=0" \
 		-e SHEET_IDX=0 \
 		-e COL_NUM=1 \
 		-e ROW_FROM=2 \
-		-e REGISTRY_URL=localhost:5000 \
+		-e REGISTRY_URL= \
 		-e DOCKER_CRED= \
 		-e QUAY_CRED= \
-		-e NOTIFY_URL=http://localhost:3000/run \
+		-e ARCHIVE_PATH=/data \
+		-e SCP_DEST= \
+		-e SCP_PASS \
+		-v /tmp/data:/data \
 		$(REPO)/$(IMAGE):$(TAG)
