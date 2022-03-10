@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: image-sync-failed1
+  name: image-sync-request
 spec:
   template:
     spec:
@@ -14,6 +14,11 @@ spec:
             - |
               curl -X "POST" "http://192.168.0.3:30800" \
               -H 'Content-Type: application/json' \
-              -d '{"sheet":"https://docs.google.com/spreadsheets/d/1_KVOzzVlAl8VQ6y6I4y2NnsokjF-yE51uOXcZPyzDEU/edit#gid=0"}'
+              -d '{ \
+              "url": "<SHARED_GOOGLE_SHEET_URL>", \
+              "num": "<SHEET_INDEX(FROM_0)>", \
+              "col": <COLUMN_INDEX_NUMBER>, \
+              "row": <ROW_INDEX_TO_START> \
+              }'
       restartPolicy: Never
   backoffLimit: 4

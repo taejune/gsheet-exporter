@@ -58,9 +58,9 @@ spec:
           - name: ARCHIVE_PATH
             value: /data
           - name: SCP_DEST
-            value: ck-ftp@192.168.1.150:/home/ck-ftp/k8s/install/offline/supercloud-images
+            value: <USER>@<SERVER_IP>:<UPLOAD_PATH>
           - name: SCP_PASS
-            value: ck-ftp
+            value: <PASS>
         ports:
           - containerPort: 8080
         resources:
@@ -104,4 +104,14 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 100Gi
+      storage: 300Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+type: Opaque
+data:
+  dockerio: <BASE64_ENCODED_DOCKER_IO_CREDENTIAL>
+  quayio: <BASE64_ENCODED_QUAY_IO_CREDENTIAL>
+  gcr: ""
