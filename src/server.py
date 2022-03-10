@@ -51,10 +51,8 @@ class myHandler(BaseHTTPRequestHandler):
             return
         length = int(self.headers['Content-Length'])
         message = json.loads(self.rfile.read(length))
-        targets = self.fetcher.parse_list(message.get('url'),
-                                          message.get('num'),
-                                          message.get('col'),
-                                          message.get('row'))
+        targets = self.fetcher.parse_list(message.get('id'), message.get('range'))
+
         copied = []
         failed = []
         for name in targets:

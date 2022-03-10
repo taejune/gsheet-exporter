@@ -16,10 +16,9 @@ push:
 
 run:
 	@docker run --name gsheet -it --rm -p 8080:8080 \
-		-e SHEET_URL="https://docs.google.com/spreadsheets/d/1_KVOzzVlAl8VQ6y6I4y2NnsokjF-yE51uOXcZPyzDEU/edit#gid=0" \
-		-e SHEET_IDX=0 \
-		-e COL_NUM=1 \
-		-e ROW_FROM=2 \
+		-e GOOGLE_APPLICATION_CREDENTIALS=/secret/credential.json \
+		-e SHEET_ID= \
+		-e RANGE= \
 		-e REGISTRY_URL= \
 		-e DOCKER_CRED= \
 		-e QUAY_CRED= \

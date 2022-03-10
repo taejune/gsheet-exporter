@@ -1,19 +1,43 @@
-from bs4 import BeautifulSoup
-import requests
+import os
+import httplib2
+from googleapiclient.discovery import build
+from oauth2client.service_account import ServiceAccountCredentials
+
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
 
 class GoogleSheetFetcher:
-    def __init__(self, sheet_url, sheet_number, column, row_from):
-        self.url = sheet_url
-        self.sheet_number = int(sheet_number)
-        self.column = int(column)
-        self.row_from = int(row_from)
+    def __init__(self, google_app_cred, sheet_id, range_name):
+        self.google_app_cred = google_app_cred
+        self.sheet_id = sheet_id
+        self.range_name = range_name
 
-    def parse_list(self, sheet_url, sheet_number, column, row_from):
-        sheet_url = sheet_url if sheet_url != None else self.url
-        sheet_number = int(sheet_number) if sheet_number != None else self.sheet_number
-        column = int(column) if column != None else self.column
-        row_from = int(row_from) if row_from != None else self.row_from
+    def parse_list(self, sheet_id, range_name):
+        sheet_id = sheet_id if sheet_id  is not None else self.sheet_id
+        range_name = range_name if range_name is not None else self.range_name
 
-        sheets = BeautifulSoup(requests.get(sheet_url).text, "lxml").find_all("table")
-        table = ([[td.text for td in tr.find_all("td")] for tr in sheets[sheet_number].find_all("tr")])
-        return [row[column] for row in table[row_from:] if len(row[column]) > 0]
+        key_file_name = self.google_app_cred
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(key_file_name, scope)
+        h = httplib2.Http()
+        h = credentials.authorize(h)
+        service = build('sheets', 'v4', http=h)
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId=sheet_id, range=range_name).execute()
+
+        values = result.get('values', [])
+        contents = []
+        for value in values:
+            contents.append(value[0])
+        return contents
+
+def main():
+    SPREADSHEET_ID = '1zBHhKvdz5sv2HZFWGcbsvAVFspQAvm_yEYtY9ZffSZc'
+    RANGE_NAME = 'total images!B2:B'
+
+    fetcher = GoogleSheetFetcher(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'), SPREADSHEET_ID, RANGE_NAME)
+
+    print(fetcher.parse_list())
+    # print(fetcher.parse_list())
+
+if __name__ == '__main__':
+    main()
