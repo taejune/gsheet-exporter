@@ -6,7 +6,6 @@ import server
 import gsheet
 import skopeo
 import shellrunner
-import time
 
 if __name__ == '__main__':
     for v in [os.environ.get('SHEET_URL'), os.environ.get('SHEET_IDX'),

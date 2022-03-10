@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: docker-archive
+  name: docker-exporter
   labels:
-    app: docker-archive
+    app: docker-exporter
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: docker-archive
+      app: docker-exporter
   template:
     metadata:
       labels:
-        app: docker-archive
+        app: docker-exporter
     spec:
       containers:
       - name: registry
@@ -25,10 +25,9 @@ spec:
           name: docker-registry-storage
         resources:
           requests:
-            memory: "1G"
-      - name: sync
-        image: tmaxcloudck/gsheet-sync:dev
-#        command: ['python3', 'server.py']
+            memory: "2G"
+      - name: exporter
+        image: tmaxcloudck/gsheet-exporter:dev
         imagePullPolicy: Always
         env:
           - name: SHEET_URL
@@ -56,30 +55,17 @@ spec:
               secretKeyRef:
                 name: regcred
                 key: gcr
-          - name: REPORT_PATH
+          - name: ARCHIVE_PATH
             value: /data
-          - name: NOTIFY_URL
-            value: http://localhost:3000/run
+          - name: SCP_DEST
+            value: ck-ftp@192.168.1.150:/home/ck-ftp/k8s/install/offline/supercloud-images
+          - name: SCP_PASS
+            value: ck-ftp
         ports:
           - containerPort: 8080
         resources:
           requests:
-            memory: "1G"
-      - name: exporter
-        image: tmaxcloudck/regarchiver:dev
-        imagePullPolicy: Always
-        env:
-          - name: TAR_PATH
-            value: /data
-          - name: UPLOAD_SCP_PATH
-            value: ck-ftp@192.168.1.150:/home/ck-ftp/k8s/install/offline/supercloud-images
-          - name: UPLOAD_SCP_PASS
-            value: ck-ftp
-        resources:
-          requests:
-            memory: "8G"
-        ports:
-          - containerPort: 3000
+            memory: "4G"
         volumeMounts:
           - mountPath: /data
             name: docker-registry-storage
@@ -91,11 +77,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: docker-archive
+  name: docker-exporter
 spec:
   type: NodePort
   selector:
-    app: docker-archive
+    app: docker-exporter
   ports:
     - name: docker
       protocol: TCP
@@ -107,11 +93,6 @@ spec:
       port: 8080
       nodePort: 30800
       targetPort: 8080
-    - name: exporter
-      protocol: TCP
-      port: 3000
-      targetPort: 3000
-      nodePort: 30300
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

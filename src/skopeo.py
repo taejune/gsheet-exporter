@@ -4,7 +4,7 @@ import subprocess
 class SkopeoUtil:
     CHECK = 'skopeo inspect docker://{IMAGE}'
     CRED_CHECK = 'skopeo inspect --creds={CRED} docker://{IMAGE}'
-    COPYCMD = 'skopeo copy --dest-tls-verify=false docker://{IMAGE} docker://{DEST}/{IMAGE}'
+    COPY = 'skopeo copy --dest-tls-verify=false docker://{IMAGE} docker://{DEST}/{IMAGE}'
     CRED_COPY = 'skopeo copy --src-creds={CRED} --dest-tls-verify=false docker://{IMAGE} docker://{DEST}/{IMAGE}'
 
     def __init__(self, docker_cred, quay_cred, gcr_cred, copy_to):
@@ -38,7 +38,7 @@ class SkopeoUtil:
                 if profile['cred']:
                     cmd = self.CRED_COPY.format(IMAGE=name, CRED=profile['cred'], DEST=self.copy_to)
                 else:
-                    cmd = self.COPYCMD.format(IMAGE=name, DEST=self.copy_to)
+                    cmd = self.COPY.format(IMAGE=name, DEST=self.copy_to)
                 break
         try:
             # print(cmd)

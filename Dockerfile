@@ -21,6 +21,8 @@ RUN echo skopeo:100000:65536 > /etc/subgid
 # Point to the Authorization file
 ENV REGISTRY_AUTH_FILE=/tmp/auth.json
 ENV TZ=Asia/Seoul
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
 
 WORKDIR /app
 
