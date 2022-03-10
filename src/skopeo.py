@@ -9,9 +9,9 @@ class SkopeoUtil:
 
     def __init__(self, docker_cred, quay_cred, gcr_cred, copy_to):
         self.profiles = {
-            'docker.io': {'pattern': re.compile('^[a-z.]*docker.io/'), 'cred': docker_cred},
-            'quay.io': {'pattern': re.compile('^[a-z.]*quay.io/'), 'cred': quay_cred},
-            'gcr': {'pattern': re.compile('^[a-z.]*gcr.io/'), 'cred': gcr_cred}
+            'docker.io': {'pattern': re.compile('^[a-z0-9.]*docker.io/'), 'cred': docker_cred},
+            'quay.io': {'pattern': re.compile('^[a-z0-9.]*quay.io/'), 'cred': quay_cred},
+            'gcr': {'pattern': re.compile('^[a-z0-9.]*gcr.io/'), 'cred': gcr_cred}
         }
         self.copy_to = copy_to
 
