@@ -68,10 +68,11 @@ class myHandler(BaseHTTPRequestHandler):
         results = {'sync': {}}
         results['sync']['success'] = copied
         results['sync']['failed'] = failed
-        tar_name = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time())) + '.tar'
+
+        tar_name = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time())) + '.tar.gz'
         print('Archiving', tar_name, os.environ.get('ARCHIVE_PATH'), '...')
         archive = {}
-        ok, reason = self.runner.run('tar --create --file={TAR} {SRC}'
+        ok, reason = self.runner.run('tar --create --gzip --file={TAR} {SRC}'
                                      .format(TAR=tar_name, SRC=os.environ.get('ARCHIVE_PATH')))
         if ok:
             archive['status'] = 'success'
