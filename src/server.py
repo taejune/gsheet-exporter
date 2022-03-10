@@ -1,19 +1,15 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import urllib.parse as urlparse
+import time
 import os
-import re
 import json
 import cgi
-import gsheet
-import skopeo_util
-
+from http.server import BaseHTTPRequestHandler
+import urllib.parse as urlparse
 
 class myHandler(BaseHTTPRequestHandler):
-    def __init__(self, fetcher, skopeo, archiver, uploader, *args, **kargs):
+    def __init__(self, fetcher, skopeo, runner, *args, **kargs):
         self.fetcher = fetcher
         self.skopeo = skopeo
-        self.archiver = archiver
-        self.uploader = uploader
+        self.runner = runner
         super().__init__(*args, **kargs)
 
     def __get_Parameter(self, key):
@@ -77,18 +73,24 @@ class myHandler(BaseHTTPRequestHandler):
         results['sync']['success'] = copied
         results['sync']['failed'] = failed
 
-        print('Archiving...')
+        tar_name = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time())) + '.tar'
+        print('Archiving', tar_name, os.environ.get('ARCHIVE_PATH'), '...')
         archive = {}
-        ok, reason = self.archiver.run()
+        ok, reason = self.runner.run('tar --create --file={TAR} {SRC}'
+                                     .format(TAR=tar_name,
+                                             SRC=os.environ.get('ARCHIVE_PATH')))
         if ok:
             archive['status'] = 'success'
         else:
             archive['status'] = 'fail'
             archive['reason'] = reason
 
-        print('Uploading...')
+        print('Uploading', tar_name, 'to', os.environ.get('SCP_DEST'), '...')
         upload = {}
-        ok, reason = self.uploader.run()
+        ok, reason = self.runner.run('sshpass -p{PASSWORD} scp -o StrictHostKeyChecking=no {TAR} {DEST}'
+                                     .format(TAR=tar_name,
+                                             PASSWORD=os.environ.get('SCP_PASS'),
+                                             DEST=os.environ.get('SCP_DEST')))
         if ok:
             upload['status'] = 'success'
         else:
@@ -97,6 +99,7 @@ class myHandler(BaseHTTPRequestHandler):
 
         results['archive'] = archive
         results['upload'] = upload
+
         self.__set_Header(200)
         self.wfile.write(bytes(json.dumps(results), 'utf-8'))
 

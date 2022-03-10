@@ -3,7 +3,7 @@ DOCKERBUILD=$(DOCKERCMD) build
 DOCKERPUSH=$(DOCKERCMD) push
 
 REPO=tmaxcloudck
-IMAGE=gsheet-sync
+IMAGE=gsheet-exporter
 TAG=dev
 
 build:
@@ -13,6 +13,7 @@ build:
 push:
 	@echo "push $(REPO)/$(IMAGE):$(TAG)..."
 	@$(DOCKERPUSH) $(REPO)/$(IMAGE):$(TAG)
+
 run:
 	@docker run --name gsheet -it --rm -p 8080:8080 \
 		-e SHEET_URL="https://docs.google.com/spreadsheets/d/1_KVOzzVlAl8VQ6y6I4y2NnsokjF-yE51uOXcZPyzDEU/edit#gid=0" \

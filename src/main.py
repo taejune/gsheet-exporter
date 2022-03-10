@@ -4,40 +4,31 @@ import os
 import sys
 import server
 import gsheet
-import skopeo_util
+import skopeo
 import shellrunner
+import time
 
 if __name__ == '__main__':
-    default_sheet = os.environ.get('SHEET_URL')
-    default_num = os.environ.get('SHEET_IDX')
-    default_col = os.environ.get('COL_NUM')
-    default_row = os.environ.get('ROW_FROM')
-    default_registry = os.environ.get('REGISTRY_URL')
-    default_archive_path = os.environ.get('ARCHIVE_PATH')
-    default_scp_dest = os.environ.get('SCP_DEST')
-    default_scp_pass = os.environ.get('SCP_PASS')
-
-    for v in [default_sheet, default_num, default_col, default_row, default_registry,
-              default_archive_path, default_scp_dest, default_scp_pass]:
+    for v in [os.environ.get('SHEET_URL'), os.environ.get('SHEET_IDX'),
+              os.environ.get('COL_NUM'), os.environ.get('ROW_FROM'), os.environ.get('REGISTRY_URL'),
+              os.environ.get('ARCHIVE_PATH'), os.environ.get('SCP_DEST'), os.environ.get('SCP_PASS')]:
         if v is None:
             sys.exit('[FATAL]: no specified necessary envs')
 
-    fetcher = gsheet.GoogleSheetFetcher(default_sheet,
-                                        default_num,
-                                        default_col,
-                                        default_row)
+    fetcher = gsheet.GoogleSheetFetcher(os.environ.get('SHEET_URL'),
+                                        os.environ.get('SHEET_IDX'),
+                                        os.environ.get('COL_NUM'),
+                                        os.environ.get('ROW_FROM'))
 
-    skopeo = skopeo_util.SkopeoUtil(os.environ.get('DOCKER_CRED'),
+    skopeo = skopeo.SkopeoUtil(os.environ.get('DOCKER_CRED'),
                                     os.environ.get('QUAY_CRED'),
                                     os.environ.get('GCR_CRED'),
-                                    default_registry)
+                                    os.environ.get('REGISTRY_URL'))
 
-    archiver = shellrunner.Command('tar --create --file=/tmp/images.tar {SRC}'.format(SRC=default_archive_path))
-    uploader = shellrunner.Command('sshpass -p{PASSWORD} scp -o StrictHostKeyChecking=no '
-                                   '/tmp/images.tar {DEST}'.format(PASSWORD=default_scp_pass, DEST=default_scp_dest))
+    runner = shellrunner.Command()
 
-    print('Default sync: {sheet}'.format(sheet=default_sheet, reg=default_registry))
+    print('Default sync: {sheet}'.format(sheet=os.environ.get('SHEET_URL'), reg=os.environ.get('REGISTRY_URL')))
     print('Listening on 8080...')
-    handler = partial(server.myHandler, fetcher, skopeo, archiver, uploader)
+    handler = partial(server.myHandler, fetcher, skopeo, runner)
     httpd = HTTPServer(('', 8080), handler)
     httpd.serve_forever()

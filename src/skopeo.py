@@ -25,7 +25,7 @@ class SkopeoUtil:
                     cmd = self.CHECK.format(IMAGE=name)
                 break
         try:
-            print(cmd)
+            # print(cmd)
             subprocess.run(cmd, check=True, shell=True, capture_output=True).check_returncode()
             return (name, True, '')
         except subprocess.SubprocessError as e:
@@ -41,7 +41,7 @@ class SkopeoUtil:
                     cmd = self.COPYCMD.format(IMAGE=name, DEST=self.copy_to)
                 break
         try:
-            print(cmd)
+            # print(cmd)
             subprocess.run(cmd, check=True, shell=True, capture_output=True).check_returncode()
             return (name, True, '')
         except subprocess.SubprocessError as e:
