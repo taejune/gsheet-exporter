@@ -16,9 +16,8 @@ push:
 
 run:
 	@docker run --name gsheet -it --rm -p 8080:8080 \
-		-e GOOGLE_APPLICATION_CREDENTIALS=/secret/credential.json \
-		-e SHEET_ID= \
-		-e RANGE= \
+		-e GOOGLE_APPLICATION_CREDENTIALS=/secret/playground-321801-3f90d7a582f0.json \
+		-e TARGET_SHEETS='1zBHhKvdz5sv2HZFWGcbsvAVFspQAvm_yEYtY9ZffSZc;CK1!C2:D,1zBHhKvdz5sv2HZFWGcbsvAVFspQAvm_yEYtY9ZffSZc;CK2!C2:D' \
 		-e REGISTRY_URL= \
 		-e DOCKER_CRED= \
 		-e QUAY_CRED= \
