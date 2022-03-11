@@ -53,19 +53,20 @@ class myHandler(BaseHTTPRequestHandler):
         message = json.loads(self.rfile.read(length))
         targets = self.fetcher.parse_list(message.get('targets'))
 
-        copied = []
-        failed = []
+        results = {'sync': {}}
+        copy_ok = []
+        copy_fail = []
         for name in targets:
             img, ok, reason = self.skopeo.copy(name)
             if ok:
                 print('Copying {img} success'.format(img=img))
-                copied.append(img)
+                copy_ok.append(img)
             else:
-                print('[WARN] Copying {img} failed... (reason: {reason})'.format(img=img, reason=reason))
-                failed.append({img: reason})
-        results = {'sync': {}}
-        results['sync']['success'] = copied
-        results['sync']['failed'] = failed
+                print('[WARN] Copying {img} fail... (reason: {reason})'.format(img=img, reason=reason))
+                copy_fail.append({img: reason})
+        results['sync']['ok'] = copy_ok
+        results['sync']['fail'] = copy_fail
+        results['sync']['summary'] = {'ok': len(copy_ok), 'fail': len(copy_fail)}
 
         tar_name = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time())) + '.tar.gz'
         print('Archiving', tar_name, os.environ.get('ARCHIVE_PATH'), '...')
@@ -81,7 +82,9 @@ class myHandler(BaseHTTPRequestHandler):
         print('Uploading', tar_name, 'to', os.environ.get('SCP_DEST'), '...')
         upload = {}
         ok, reason = self.runner.run('sshpass -p{PASSWORD} scp -o StrictHostKeyChecking=no {TAR} {DEST}'
-                                     .format(TAR=tar_name, PASSWORD=os.environ.get('SCP_PASS'),DEST=os.environ.get('SCP_DEST')))
+                                     .format(TAR=tar_name,
+                                             PASSWORD=os.environ.get('SCP_PASS'),
+                                             DEST=os.environ.get('SCP_DEST')))
         if ok:
             upload['status'] = 'success'
         else:
