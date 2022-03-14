@@ -26,7 +26,7 @@ spec:
         resources:
           requests:
             memory: "2G"
-      - name: exporter
+      - name: controller
         image: tmaxcloudck/gsheet-exporter:dev
         imagePullPolicy: Always
         env:
@@ -54,7 +54,7 @@ spec:
           - name: ARCHIVE_PATH
             value: /data
           - name: SCP_DEST
-            value: ck-ftp@192.168.1.150:/home/ck-ftp/k8s/install/offline/supercloud-images
+            value: ck-ftp@192.168.1.150:/backups/supercloud-images
           - name: SCP_PASS
             value: ck-ftp
         ports:
