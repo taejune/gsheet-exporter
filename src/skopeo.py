@@ -12,6 +12,7 @@ class SkopeoUtil:
             'docker.io': {'pattern': re.compile('^[a-z0-9.]*docker.io/'), 'cred': docker_cred},
             'docker.elastic.co': {'pattern': re.compile('^docker.elastic.co/'), 'cred': ''},
             'public.ecr.aws': {'pattern': re.compile('^public.ecr.aws/'), 'cred': ''},
+            'ghcr.io': {'pattern': re.compile('^[a-z0-9.]*ghcr.io/'), 'cred': ''},
             'quay.io': {'pattern': re.compile('^[a-z0-9.]*quay.io/'), 'cred': quay_cred},
             'gcr': {'pattern': re.compile('^[a-z0-9.]*gcr.io/'), 'cred': gcr_cred}
         }
