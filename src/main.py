@@ -6,6 +6,8 @@ import server
 import gsheet
 import skopeo
 import shellrunner
+import registry
+import docker.cli as cli
 
 if __name__ == '__main__':
     for v in [os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'),
@@ -18,6 +20,7 @@ if __name__ == '__main__':
 
     fetcher = gsheet.GoogleSheetFetcher(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'),
                                         os.environ.get('TARGET_SHEETS'))
+    reg = registry.Registry(cli.RegistryCli('http://' + os.environ.get('REGISTRY_URL')))
     skopeo = skopeo.SkopeoUtil(os.environ.get('DOCKER_CRED'),
                                     os.environ.get('QUAY_CRED'),
                                     os.environ.get('GCR_CRED'),
@@ -29,6 +32,6 @@ if __name__ == '__main__':
     print('Upload to {UPLOAD}'.format(UPLOAD=os.environ.get('SCP_DEST')))
 
     print('Listening on 8080...')
-    handler = partial(server.myHandler, fetcher, skopeo, runner)
+    handler = partial(server.myHandler, fetcher, reg, skopeo, runner)
     httpd = HTTPServer(('', 8080), handler)
     httpd.serve_forever()

@@ -6,8 +6,9 @@ from http.server import BaseHTTPRequestHandler
 import urllib.parse as urlparse
 
 class myHandler(BaseHTTPRequestHandler):
-    def __init__(self, fetcher, skopeo, runner, *args, **kargs):
+    def __init__(self, fetcher, reg, skopeo, runner, *args, **kargs):
         self.fetcher = fetcher
+        self.reg = reg
         self.skopeo = skopeo
         self.runner = runner
         super().__init__(*args, **kargs)
@@ -57,13 +58,19 @@ class myHandler(BaseHTTPRequestHandler):
         copy_ok = []
         copy_fail = []
         for name in targets:
+            if self.reg.exist(name):
+                print('{IMG} already exist'.format(IMG=name))
+                copy_ok.append(name)
+                continue
+
             img, ok, reason = self.skopeo.copy(name)
             if ok:
-                print('Copying {img} success'.format(img=img))
+                print('Copying {IMG} success'.format(IMG=img))
                 copy_ok.append(img)
             else:
-                print('[WARN] Copying {img} fail... (reason: {reason})'.format(img=img, reason=reason))
+                print('[WARN] Copying {IMG} fail... (reason: {REASON})'.format(IMG=img, REASON=reason))
                 copy_fail.append({img: reason})
+
         results['sync']['ok'] = copy_ok
         results['sync']['fail'] = copy_fail
         results['sync']['summary'] = {'ok': len(copy_ok), 'fail': len(copy_fail)}
