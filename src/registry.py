@@ -1,5 +1,5 @@
-import docker.cli as cli
-import docker.errors as errors
+from docker.cli import RegistryCli as cli
+from docker.errors import RegistryError
 
 class Registry:
     def __init__(self, cli):
@@ -10,14 +10,15 @@ class Registry:
         [name, tag] = image.split(':')
         try:
             tags = self.cli.list_tags(name)
+            if tags is None:
+                return False
             for t in tags:
                 if t == tag:
                     return True
-        except errors.RegistryError as e:
+        except RegistryError as e:
             # print(e)
             return False
         return False
-
 
 def main():
     c = cli.RegistryCli('http://192.168.0.3:30500')
