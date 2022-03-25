@@ -59,14 +59,14 @@ class myHandler(BaseHTTPRequestHandler):
         results = {'sync': {}}
         copy_ok = []
         copy_fail = []
-
         for name in checking_list:
             if self.reg.exist(name):
                 print('{IMG} already exist'.format(IMG=name))
                 copy_ok.append(name)
-                checking_list.remove(name)
+            else:
+                musts.append(name)
 
-        for name in checking_list + musts:
+        for name in musts:
             img, ok, reason = self.skopeo.copy(name)
             if ok:
                 print('Copying {IMG} success'.format(IMG=img))

@@ -19,7 +19,7 @@ class GoogleSheetFetcher:
             [sheet_id, range_name] = target.split(';')
             fetched = self.sheet.values().get(spreadsheetId=sheet_id, range=range_name).execute()
             rows = fetched.get('values', [])
-            res.append([r for r in rows if len(r) > 0])
+            res = res + [r for r in rows if len(r) > 0]
         return res
 
 def main():
