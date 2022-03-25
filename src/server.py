@@ -52,17 +52,21 @@ class myHandler(BaseHTTPRequestHandler):
             return
         length = int(self.headers['Content-Length'])
         message = json.loads(self.rfile.read(length))
-        targets = self.fetcher.parse_list(message.get('targets'))
+        records = self.fetcher.parse_list(message.get('targets'))
+        musts = [r[0] for r in records if len(r) > 1 and r[1] == 'TRUE']
+        checking_list = [r[0] for r in records if len(r) == 1 or (len(r) > 1 and r[1] != 'FALSE')]
 
         results = {'sync': {}}
         copy_ok = []
         copy_fail = []
-        for name in targets:
+
+        for name in checking_list:
             if self.reg.exist(name):
                 print('{IMG} already exist'.format(IMG=name))
                 copy_ok.append(name)
-                continue
+                checking_list.remove(name)
 
+        for name in checking_list + musts:
             img, ok, reason = self.skopeo.copy(name)
             if ok:
                 print('Copying {IMG} success'.format(IMG=img))

@@ -19,12 +19,8 @@ class GoogleSheetFetcher:
             [sheet_id, range_name] = target.split(';')
             fetched = self.sheet.values().get(spreadsheetId=sheet_id, range=range_name).execute()
             rows = fetched.get('values', [])
-            for row in [r for r in rows if len(r) > 0]:
-                if len(row) > 1 and row[1] == 'FALSE':
-                    continue
-                res.append(row[0])
+            res.append([r for r in rows if len(r) > 0])
         return res
-
 
 def main():
     targetlists = '1zBHhKvdz5sv2HZFWGcbsvAVFspQAvm_yEYtY9ZffSZc;CK1!C2:D,1zBHhKvdz5sv2HZFWGcbsvAVFspQAvm_yEYtY9ZffSZc;CK2!C2:D'
