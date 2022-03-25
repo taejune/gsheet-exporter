@@ -18,6 +18,9 @@ spec:
       - name: registry
         image: registry:2.7.1
         imagePullPolicy: Always
+        env:
+        - name: REGISTRY_STORAGE_DELETE_ENABLED
+          value: "true"
         ports:
         - containerPort: 5000
         volumeMounts:
